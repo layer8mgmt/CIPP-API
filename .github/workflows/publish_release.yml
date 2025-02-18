@@ -10,7 +10,8 @@ permissions:
 
 jobs:
   release:
-    if: github.event.repository.fork == false && github.event_name == 'push'
+    #if: github.event.repository.fork == false && github.event_name == 'push'
+    if: github.event_name == 'push'
     name: Generate Release Notes and Upload to Azure
     runs-on: ubuntu-latest
 
@@ -49,14 +50,14 @@ jobs:
       # Generate Release Notes
       - name: Generate Release Notes
         id: changelog
-        if: env.tag_exists == 'false'
+        if: env.tag_exists == 'true'
         uses: mikepenz/release-changelog-builder-action@v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Create a new release tag
       - name: Create GitHub Release
-        if: env.tag_exists == 'false'
+        if: env.tag_exists == 'true'
         uses: ncipollo/release-action@v1.14.0
         with:
           tag: ${{ steps.get_version.outputs.version }}
@@ -70,7 +71,7 @@ jobs:
 
       # Create ZIP File in a New Source Directory
       - name: Prepare and Zip Release Files
-        if: env.tag_exists == 'false'
+        if: env.tag_exists == 'true'
         run: |
           mkdir -p src/releases
           zip -r src/releases/release_${{ steps.get_version.outputs.version }}.zip . \
@@ -84,7 +85,7 @@ jobs:
 
       # Upload to Azure Blob Storage
       - name: Azure Blob Upload with Destination folder defined
-        if: env.tag_exists == 'false'
+        if: env.tag_exists == 'true'
         uses: LanceMcCarthy/Action-AzureBlobUpload@v3.3.0
         with:
           connection_string: ${{ secrets.AZURE_CONNECTION_STRING }}
